@@ -1,0 +1,2 @@
+# kenny_python_all_basic_from_0
+python基础大全
