@@ -45,7 +45,7 @@ turtle.done()
 ### 运动方向
 #### 1.left(angle)逆时针或者right(angle)顺时针
 #### 2.setheading(angle),正数是顺时针旋转，负数是逆时针旋转
-### 小案例，用turtle绘制一个矩形
+### 小案例，用turtle绘制一个矩形<br>
 ```
 import turtle
 
