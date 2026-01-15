@@ -223,6 +223,89 @@ turtle.done()
 ```
 ### 运行程序，效果如下：<br>
 <img width="963" height="847" alt="{9A1DBBE0-A7DA-4C07-B439-AAC2D5243010}" src="https://github.com/user-attachments/assets/82fd2b01-bfc2-406b-97c9-7d44d69f90c6" /><br>
+# 6.绘制5环图案
+## 画法1
+```
+import turtle  # 调用turtle库绘制图像的函数库
+
+turtle.screensize(400,400)  # 启动窗体的位置和大小，设置图像大小
+
+turtle.pensize(20)  # 画笔宽度
+turtle.speed(5)  # 设置画笔移动速度, 数字越大越快
+# 先绘制中间的黑色圆环
+turtle.pencolor("black")
+turtle.circle(80)
+
+turtle.pencolor("blue")
+turtle.penup()
+turtle.goto(-200,0)
+turtle.pendown()
+turtle.circle(80)
+
+turtle.pencolor("red")
+turtle.penup()
+turtle.goto(200,0)
+turtle.pendown()
+turtle.circle(80)
 
 
+turtle.pencolor("yellow")
+turtle.penup()
+turtle.goto(-100,-85)
+turtle.pendown()
+turtle.circle(80)
 
+turtle.pencolor("green")
+turtle.penup()
+turtle.goto(100,-85)
+turtle.pendown()
+turtle.circle(80)
+# 关闭
+turtle.done()
+
+```
+### 效果<br>
+<img width="960" height="835" alt="{183138F8-C6ED-4E65-B5D4-9E35E727CB64}" src="https://github.com/user-attachments/assets/0fbf1aed-f9cf-4fbb-9908-5c7462caa572" /><br>
+
+## 画法2<br>
+```
+import turtle  # 调用turtle库绘制图像的函数库
+
+turtle.screensize(400,400)  # 启动窗体的位置和大小，设置图像大小
+
+turtle.pensize(20)  # 画笔宽度
+turtle.speed(5)  # 设置画笔移动速度, 数字越大越快
+# 先绘制中间的黑色圆环
+turtle.pencolor("black")
+turtle.circle(80)
+
+turtle.pencolor("blue")
+turtle.penup()
+turtle.backward(200)
+turtle.pendown()
+turtle.circle(80)
+
+turtle.pencolor("red")
+turtle.penup()
+turtle.forward(400)
+turtle.pendown()
+turtle.circle(80)
+#
+#
+turtle.pencolor("yellow")
+turtle.penup()
+turtle.goto(-100,-85)
+turtle.pendown()
+turtle.circle(80)
+
+turtle.pencolor("green")
+turtle.penup()
+turtle.goto(100,-85)
+turtle.pendown()
+turtle.circle(80)
+# 关闭
+turtle.done()
+
+```
+### 效果<br>
+<img width="960" height="835" alt="{183138F8-C6ED-4E65-B5D4-9E35E727CB64}" src="https://github.com/user-attachments/assets/0fbf1aed-f9cf-4fbb-9908-5c7462caa572" /><br>
