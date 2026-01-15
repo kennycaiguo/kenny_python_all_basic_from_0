@@ -131,7 +131,7 @@ turtle.forward(100)
 turtle.done()
 ```
 ### 效果是一样的，使用相对坐标就需要注意海龟头的方向<br>
-<img width="960" height="848" alt="{EE8B802A-B25B-4BEA-BE1D-4F359E62B9F9}" src="https://github.com/user-attachments/assets/ab6579c4-cffa-47fa-a26f-17d2792ccba8" />
+<img width="960" height="848" alt="{EE8B802A-B25B-4BEA-BE1D-4F359E62B9F9}" src="https://github.com/user-attachments/assets/ab6579c4-cffa-47fa-a26f-17d2792ccba8" /><br>
 # 4.图形的绘制p17<br>
 ## 矩形，就是旋转海龟头和控制海龟的向前或者向后移动就可以绘制出来，参考说明的案例
 ## 圆形，`turtle.circle(radius,extent,step)` 也就是半径，弧度，步数，步数越大越圆滑，这个函数可以绘制圆，圆弧和多边形
