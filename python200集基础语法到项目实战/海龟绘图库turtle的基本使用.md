@@ -132,7 +132,7 @@ turtle.done()
 ```
 ### 效果是一样的，使用相对坐标就需要注意海龟头的方向<br>
 <img width="960" height="848" alt="{EE8B802A-B25B-4BEA-BE1D-4F359E62B9F9}" src="https://github.com/user-attachments/assets/ab6579c4-cffa-47fa-a26f-17d2792ccba8" />
-# 图形的绘制p17<br>
+# 4.图形的绘制p17<br>
 ## 矩形，就是旋转海龟头和控制海龟的向前或者向后移动就可以绘制出来，参考说明的案例
 ## 圆形，`turtle.circle(radius,extent,step)` 也就是半径，弧度，步数，步数越大越圆滑，这个函数可以绘制圆，圆弧和多边形
 ## 绘制点，`turtle.dot(直径，颜色)`
@@ -176,5 +176,53 @@ turtle.done()
 ```
 ### 效果<br>
 <img width="953" height="844" alt="{6041E696-C9CC-46EB-9282-3DAC926A7ED3}" src="https://github.com/user-attachments/assets/af9cff8a-0b7d-4afa-aea3-9137b9e98136" /><br>
+# 5.填充图形
+## 设置填充颜色，2种操作方法
+## 需要开启填充：`turtle.begin_fill()`
+## 绘图过程...
+## 绘制完毕后需要改变填充： `turtle.end_fill()`
+## 关闭画板`turtle.done()`
+### fillShape.py完整代码如下：<br>
+```
+import turtle
+
+turtle.screensize(400,400)
+turtle.pensize(5)
+turtle.pencolor("deeppink")
+turtle.shape('turtle')
+# 设置填充颜色，2种操作方法
+# 填充方式1
+turtle.fillcolor("cyan")
+# 需要开启填充：`turtle.begin_fill()`
+turtle.begin_fill()
+
+# 绘制一个100*80填充矩形
+turtle.forward(100)
+turtle.left(90)
+turtle.forward(80)
+turtle.left(90)
+turtle.forward(100)
+turtle.left(90)
+turtle.forward(80)
+# 绘制完毕后需要改变填充： `turtle.end_fill()`
+turtle.end_fill()
+
+# 抬起笔来，然后运动位置
+turtle.penup()
+turtle.goto(0,-150)
+# 把笔放下，方便绘图
+turtle.pendown()
+# 第二种填充方式
+# 同时设置画笔颜色和填充颜色
+turtle.color("orange","lime")
+turtle.begin_fill()
+turtle.circle(100)
+turtle.end_fill()
+
+turtle.done()
+```
+### 运行程序，效果如下：<br>
+<img width="963" height="847" alt="{9A1DBBE0-A7DA-4C07-B439-AAC2D5243010}" src="https://github.com/user-attachments/assets/82fd2b01-bfc2-406b-97c9-7d44d69f90c6" /><br>
+
 
 
