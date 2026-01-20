@@ -131,5 +131,59 @@ def drawPolygon():
 ## 案例4，图片增强
 ### 1>颜色增强，代码如下
 ```
+from PIL import Image, ImageEnhance
+
+
+# 图片增强，颜色
+def enhance_color():
+    img = Image.open(r"D:\pics\png\mj3.png")
+    img2 = ImageEnhance.Color(img)
+    img2.enhance(5.0).show()
 
 ```
+### 效果：<br>
+<img width="641" height="643" alt="{8B536870-ABF6-4024-9DFF-140D1B87BE5A}" src="https://github.com/user-attachments/assets/41503d5d-1971-43ca-b36a-d568e586167d" /><br>
+### 2>.对比度增强，代码如下
+```
+from PIL import Image, ImageEnhance
+
+def enhance_contrast():
+    img = Image.open(r"D:\pics\png\mj3.png")
+    img2 = ImageEnhance.Contrast(img)
+    img2.enhance(5.0).show()
+```
+### 效果：<br>
+<img width="640" height="635" alt="{365B30D1-EF49-4C87-AAA3-C52DE4B58DE9}" src="https://github.com/user-attachments/assets/8ce56431-9b09-4238-8924-e6d78af41676" /><br>
+### 3>亮度增强，代码如下
+```
+from PIL import Image, ImageEnhance
+
+
+def enhance_brightness():
+    img = Image.open(r"D:\pics\png\mj3.png")
+    img2 = ImageEnhance.Brightness(img)
+    img2.enhance(1.5).show()
+```
+### 效果：<br>
+<img width="640" height="640" alt="{CF85CCA0-77B5-4326-986C-F8661F5452F1}" src="https://github.com/user-attachments/assets/a6014553-e47e-4ffe-b7dd-243a2219d494" /><br>
+### 4>清晰度增强，代码如下
+```
+from PIL import Image, ImageEnhance
+
+
+def enhance_sharpness():
+    img = Image.open(r"D:\pics\png\mj3.png")
+    img2 = ImageEnhance.Sharpness(img)
+    img2.enhance(5.0).show()
+```
+### 效果：<br>
+<img width="639" height="636" alt="{07101ACA-F0A9-45BB-9FDF-D5F0B8143B72}" src="https://github.com/user-attachments/assets/23f09837-86d3-4080-a6ab-d74e84630fb0" /><br>
+
+
+
+
+
+
+
+
+
