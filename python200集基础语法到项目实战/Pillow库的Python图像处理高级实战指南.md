@@ -37,6 +37,7 @@ cropped_img.save("scenery_9_16.jpg")
 1.2 旋转：避免内容丢失的“扩展画布”技巧
 默认的rotate()方法会裁剪超出原画布的内容，而通过expand=True参数可以自动扩展画布，保留完整旋转后的图像（背景默认黑色，可自定义填充色）。
 示例2：30度旋转并扩展画布
+```
 from PIL import Image
 
 with Image.open("cat.jpg") as img:
@@ -47,11 +48,12 @@ with Image.open("cat.jpg") as img:
         fillcolor=(255, 255, 255)  # RGB白色
     )
     rotated.save("cat_rotated.jpg")
-
+```
 
 1.3 翻转与镜像：水平/垂直翻转的艺术
 transpose()方法支持多种翻转模式，适合制作对称效果（如镜面倒影）。
 示例3：制作水面倒影效果
+```
 from PIL import Image
 
 with Image.open("mountain.jpg") as img:
@@ -69,7 +71,7 @@ with Image.open("mountain.jpg") as img:
             r, g, b = flipped.getpixel((x, y))
             flipped.putpixel((x, y), (r, g, b, alpha))  # 需转换为RGBA模式
     combined.save("mountain_reflection.png")
-
+```
 
 ________________________________________
 ### 二、滤镜与色彩魔法：从内置效果到自定义调整
