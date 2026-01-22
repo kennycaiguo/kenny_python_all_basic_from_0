@@ -31,7 +31,7 @@ from PIL import Image, ImageFilter, ImageFont, ImageDraw
 # 图片旋转
 def rotate_img():
     img = Image.open(r"D:\pics\png\mj3.png")
-    img1 = img.rotate(90)
+    img1 = img.rotate(90) # 注意：可以使用center参数来设置旋转点如： img1 = img.rotate(90,center=(0,0))
     img1.show()
 
 if __name__ == '__main__':
