@@ -210,6 +210,24 @@ if __name__ == '__main__':
 ### 效果：<br>
 <img width="637" height="638" alt="{1DB6147D-9725-4FBD-8466-C53CE5D09604}" src="https://github.com/user-attachments/assets/c5d12311-43a6-4885-8782-88606393275b" /><br>
 
+## 裁剪图片<br>
+```
+from PIL import Image, ImageFilter, ImageFont, ImageDraw
+
+
+# 图片裁剪
+def crop_pic():
+    img = Image.open("./lucky.png")
+    cropped = img.crop(box=(220,80,785,600))
+    cropped.show()
+
+
+if __name__ == '__main__':
+    crop_pic()
+```
+### 效果：<br>
+<img width="710" height="649" alt="{B05F2A57-40E5-4ADD-A85F-AAEE2971F518}" src="https://github.com/user-attachments/assets/84cca821-8151-4a13-bea4-371f405fafc2" /><br>
+
 
 ## 案例3，绘制图形
 ### 1>画线
