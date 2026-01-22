@@ -1,4 +1,4 @@
-## 1. 转化为灰度图
+## 转化为灰度图
 ```
 from PIL import Image, ImageFilter, ImageFont, ImageDraw
 
