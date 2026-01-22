@@ -101,6 +101,7 @@ with Image.open("portrait.jpg") as img:
 2.2 色彩调整：从亮度到HSL的精准控制
 通过ImageEnhance模块可以调整图像的亮度、对比度、色彩平衡和锐度，甚至自定义HSL（色相、饱和度、亮度）变换。
 示例5：老照片色调还原
+```
 from PIL import Image, ImageEnhance
 
 def old_photo_effect(img_path):
@@ -124,7 +125,7 @@ def old_photo_effect(img_path):
         enhancer = ImageEnhance.Contrast(desaturated)
         grainy = enhancer.enhance(1.2)
         return grainy
-
+```
 # 使用示例：将现代照片转为老照片风格
 old_photo = old_photo_effect("modern_photo.jpg")
 old_photo.save("old_photo_effect.jpg")
@@ -135,6 +136,7 @@ ________________________________________
 3.1 遍历文件夹：用os模块实现批量操作
 结合os.walk()遍历文件夹，可对所有图片（如JPG、PNG）执行统一操作（如添加水印、调整尺寸）。
 示例6：批量添加文字水印
+```
 import os
 from PIL import Image, ImageDraw, ImageFont
 
@@ -166,11 +168,12 @@ for root, dirs, files in os.walk("."):
         if file.lower().endswith((".jpg", ".jpeg")):
             img_path = os.path.join(root, file)
             add_watermark(img_path)
-
+```
 
 3.2 性能优化：多线程加速批量处理
 处理大量图像时，单线程效率低下，可通过concurrent.futures.ThreadPoolExecutor实现多线程并行处理。
 示例7：多线程批量压缩图片
+```
 import os
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
@@ -198,11 +201,13 @@ image_paths = [os.path.join(image_dir, f) for f in os.listdir(image_dir)
 
 with ThreadPoolExecutor(max_workers=4) as executor:
     executor.map(compress_image, image_paths)
+```
 ________________________________________
 ### 四、创意特效：从九宫格拼图到漫画风生成
 4.1 九宫格拼图：朋友圈的“仪式感神器”
 将一张正方形图片切成9小块，适合分9天发布或拼成网格图。
 示例8：生成九宫格拼图
+```
 from PIL import Image
 
 def split_into_nine(img_path):
@@ -223,13 +228,14 @@ def split_into_nine(img_path):
                 bottom = top + block_size
                 block = img.crop((left, top, right, bottom))
                 block.save(f"nine_grid_{i}_{j}.jpg")
-
+```
 # 使用示例：将自拍切成九宫格
 split_into_nine("selfie.jpg")
 
 4.2 漫画风特效：边缘检测+色彩量化
 通过轮廓提取和色彩量化，可将照片转为漫画风格（类似手机APP的“漫画滤镜”）。
 示例9：照片转漫画风
+```
 from PIL import Image, ImageFilter, ImageOps
 
 def photo_to_cartoon(img_path):
@@ -242,7 +248,7 @@ def photo_to_cartoon(img_path):
         # 步骤3：合并轮廓与量化图（轮廓覆盖在量化图上）
         cartoon = Image.composite(quantized, edges, edges.convert("L"))
         return cartoon
-
+```
 # 使用示例：将风景照转为漫画风格
 cartoon_img = photo_to_cartoon("landscape.jpg")
 cartoon_img.save("cartoon_style.jpg")
@@ -253,6 +259,7 @@ ________________________________________
 5.1 图像预处理：为模型输入准备数据
 深度学习模型（如CNN）通常需要固定尺寸、标准化的输入，Pillow可轻松完成这些操作。
 示例10：为ResNet模型预处理图像
+```
 from PIL import Image
 import numpy as np
 
@@ -267,7 +274,7 @@ def preprocess_for_resnet(img_path):
         img_array = (img_array - mean) / std
         # 增加批次维度（模型输入为[batch, height, width, channels]）
         return np.expand_dims(img_array, axis=0)
-
+```
 # 使用示例：预处理图像用于模型推理
 input_tensor = preprocess_for_resnet("test_image.jpg")
 
@@ -275,6 +282,7 @@ input_tensor = preprocess_for_resnet("test_image.jpg")
 5.2 数据增强：提升模型泛化能力
 在训练阶段，通过随机旋转、翻转、裁剪等操作生成更多样化的训练数据，Pillow可轻松实现这些增强。
 示例11：随机数据增强函数
+```
 import random
 from PIL import Image
 
@@ -295,7 +303,7 @@ def random_augment(img):
 with Image.open("train_image.jpg") as img:
     augmented_img = random_augment(img)
     augmented_img.save("augmented_train_image.jpg")
-
+```
 ________________________________________
 结语
 Pillow库的强大之处在于“简单问题简单解决，复杂问题灵活扩展”：从日常的九宫格拼图、批量水印，到高级的漫画特效、数据增强，它用简洁的API覆盖了90%的图像处理需求。当你需要更复杂的功能（如目标检测、语义分割）时，Pillow也能作为预处理工具，与OpenCV、PyTorch等库无缝衔接。
