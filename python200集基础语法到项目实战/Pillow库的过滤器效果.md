@@ -213,7 +213,7 @@ if __name__ == '__main__':
 from PIL import Image, ImageFilter, ImageFont, ImageDraw
 
 
-# 等级滤波器
+# 排序滤波器
 def filter_rankfilter():
     image = Image.open("./cats.png")
     filtered = image.filter(ImageFilter.RankFilter(5, 24))
@@ -307,40 +307,28 @@ if __name__ == '__main__':
 ## 效果
 
 
-## <br>
+## UnsharpMask：反锐化掩码滤波<br>
+### ①radius：模糊半径
+
+### ②percent：反锐化强度（百分比）
+
+### ③threshold：被锐化的最小亮度
 ```
+from PIL import Image, ImageFilter, ImageFont, ImageDraw
 
 
-```
-## 效果<br>
+# UnsharpMask：反锐化掩码滤波
+def filter_unsharpMask():
+    im = Image.open('./unicorn.png')
+    umF = im.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+    umF.show()
 
 
-## <br>
-```
-
-
-```
-## 效果<br>
-
-
-## <br>
-```
-
-
-```
-## 效果<br>
-
-
-## <br>
-```
-
+if __name__ == '__main__':
+    filter_unsharpMask()
 
 ```
 ## 效果<br>
-
-
-
-
-
+<img width="326" height="247" alt="{CBFDEEAE-3B98-4155-A6AD-3A2E2734710B}" src="https://github.com/user-attachments/assets/29a13007-0779-42a4-8cff-04e16b1d9475" /><br>
 
 
