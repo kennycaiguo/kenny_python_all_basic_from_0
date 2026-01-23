@@ -255,6 +255,29 @@ if __name__ == '__main__':
 ### 效果：<br>
 <img width="503" height="624" alt="{5B5CF6BE-D004-4D2B-81CF-8805A62382E1}" src="https://github.com/user-attachments/assets/8ed7c802-f030-4bcc-ab01-29892fa8318a" /><br>
 
+## 文字马赛克
+```
+from PIL import Image, ImageFilter, ImageFont, ImageDraw
+
+
+# 文字马赛克
+def text_mosaic():
+    pic = Image.open("./nobra.png")
+    font = ImageFont.truetype("arial", 90)
+    draw = ImageDraw.Draw(pic)
+    draw.text(xy=(250, 430), text="NOBra",fill=(0, 0, 0),font=font)
+    draw.text(xy=(650, 430), text="NOBra",fill=(0,0,0), font=font)
+    pic.show()
+
+
+if __name__ == '__main__':
+    text_mosaic()
+```
+### 效果：<br>
+<img width="443" height="782" alt="{72C966DD-8939-4789-ACA2-266E7B146E9A}" src="https://github.com/user-attachments/assets/7fd6d5bc-1ded-4616-951d-9af1b24c1fcc" /><br>
+
+
+
 ## 案例3，绘制图形
 ### 1>画线
 ```
