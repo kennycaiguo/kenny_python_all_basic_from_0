@@ -228,6 +228,32 @@ if __name__ == '__main__':
 ### 效果：<br>
 <img width="710" height="649" alt="{B05F2A57-40E5-4ADD-A85F-AAEE2971F518}" src="https://github.com/user-attachments/assets/84cca821-8151-4a13-bea4-371f405fafc2" /><br>
 
+## 图片马赛克
+```
+from PIL import Image, ImageFilter, ImageFont, ImageDraw
+
+
+# 图片马赛克
+def pic_mosaic():
+    # 原图片
+    img = Image.open("./sexy.png")
+    # 作为马赛克的图片
+    mosaic_src = Image.open("./lucky.png")
+    # 图片太大，把他变小
+    mosaic_pic = mosaic_src.copy()
+    mosaic_pic.thumbnail(size=(50, 50))
+    # mosaic_pic.show()
+    img.paste(mosaic_pic, box=(135, 180))  # 这个方法没有返回值
+    img.paste(mosaic_pic, box=(215, 180))
+    img.paste(mosaic_pic, box=(180, 350))
+    img.show()
+
+
+if __name__ == '__main__':
+    pic_mosaic()
+```
+### 效果：<br>
+<img width="503" height="624" alt="{5B5CF6BE-D004-4D2B-81CF-8805A62382E1}" src="https://github.com/user-attachments/assets/8ed7c802-f030-4bcc-ab01-29892fa8318a" /><br>
 
 ## 案例3，绘制图形
 ### 1>画线
