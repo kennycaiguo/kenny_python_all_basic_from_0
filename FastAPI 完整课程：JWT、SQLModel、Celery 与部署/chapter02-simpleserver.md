@@ -1,3 +1,7 @@
+## 0.新建一个SimpleServer项目，然后进入这个文件夹<br>
+<img width="499" height="370" alt="{F238B5AA-6BCA-4FFD-8AF8-D06595871456}" src="https://github.com/user-attachments/assets/4250f6be-512a-46e9-a654-9b1fdd90b41b" /><br>
+
+
 ## 1.在我们项目的根目录里面创建一个main.py，内容如下
 ```
 from fastapi import FastAPI
