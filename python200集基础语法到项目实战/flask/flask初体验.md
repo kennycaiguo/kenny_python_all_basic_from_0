@@ -1,1 +1,1 @@
-# xian anz mysql
+# 1.flask安装： pip install flask
