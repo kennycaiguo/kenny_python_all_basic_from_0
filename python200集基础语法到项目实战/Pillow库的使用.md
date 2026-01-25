@@ -276,6 +276,33 @@ if __name__ == '__main__':
 ### 效果：<br>
 <img width="443" height="782" alt="{72C966DD-8939-4789-ACA2-266E7B146E9A}" src="https://github.com/user-attachments/assets/7fd6d5bc-1ded-4616-951d-9af1b24c1fcc" /><br>
 
+## 自定义图片，可以创建一幅空白图片，然后粘贴其他图片，也就是利用图片马赛克功能来生成新图片
+```
+from PIL import Image, ImageFilter, ImageFont, ImageDraw
+
+
+# 自定义图片
+def custom_img():
+    img = Image.new("RGB", (500, 500), (255, 255, 255))
+    luck = Image.open("./scene.png")
+    scene = luck.resize((250, 250))
+    img.paste(scene, box=(0, 0))
+    v_scene = scene.rotate(90)
+    img.paste(v_scene, box=(img.size[0] - scene.size[0], 0))
+    cats = Image.open("./cats.png")
+    cats = cats.resize((250, 250))
+    img.paste(cats, box=(img.size[0] - cats.size[0], img.size[1] - cats.size[1]))
+    v_cats = cats.rotate(90)
+    img.paste(v_cats, box=(0, img.size[1] - cats.size[1]))
+    img.show()
+
+
+if __name__ == '__main__':
+    custom_img()
+```
+### 效果：<br>
+<img width="631" height="624" alt="{50F0AB5F-0FEB-44DE-9883-7F2D05E71752}" src="https://github.com/user-attachments/assets/56e4b902-ed71-4a65-ab1f-72ffb45d7267" /><br>
+
 
 
 ## 案例3，绘制图形
