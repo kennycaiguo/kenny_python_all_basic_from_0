@@ -1,4 +1,4 @@
-<img width="1238" height="564" alt="image" src="https://github.com/user-attachments/assets/f992db6c-3a35-462e-8402-6f9391b10fa1" />## 1.在我们项目的根目录里面创建一个main.py，内容如下
+## 1.在我们项目的根目录里面创建一个main.py，内容如下
 ```
 from fastapi import FastAPI
 
