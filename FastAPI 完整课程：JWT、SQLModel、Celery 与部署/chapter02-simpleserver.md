@@ -1,6 +1,6 @@
+# 1.get请求
 ## 0.新建一个SimpleServer项目，然后进入这个文件夹<br>
 <img width="499" height="370" alt="{F238B5AA-6BCA-4FFD-8AF8-D06595871456}" src="https://github.com/user-attachments/assets/4250f6be-512a-46e9-a654-9b1fdd90b41b" /><br>
-
 
 ## 1.在我们项目的根目录里面创建一个main.py，内容如下
 ```
@@ -162,6 +162,184 @@ async def show_data(page: Optional['int'] = 1):
 ## 效果如下<br>
 <img width="1404" height="637" alt="image" src="https://github.com/user-attachments/assets/2cff0369-f304-4da1-946f-d32892a0eaa6" /><br>
 <img width="1434" height="692" alt="image" src="https://github.com/user-attachments/assets/143598c5-fb02-4029-b021-9e10fbed5ef5" /><br>
+# 2.post请求
+## 1.创建一个新用户并且返回信息
+```
+from fastapi import FastAPI
+from typing import Optional
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+@app.get("/")
+async def home():
+    return {"message": "Hello World From FastApi..."}
+
+
+@app.get("/greet/{username}")  # 带参数的路由
+async def greet(username: str) -> dict:
+    return {"message": f"Hello, {username}"}
+
+
+# querystring
+user_list = [
+    "Jerry",
+    "Joey",
+    "Phil"
+]
+
+
+@app.get("/search")
+async def do_search(username: str):
+    if username in user_list:
+        return {"result": "User exists"}
+    else:
+        return {"result": "User not exists"}
+
+
+# 同时使用路径参数和查询参数： http://127.0.0.1:8000/info/Jack?age=20&address=kingston&email=Jack123@gmail.com
+@app.get("/info/{name}")
+async def user_info(name, age, address, email):
+    return {"Name": f"{name}", "age": age, "address": address, "email": email}
+
+
+# 可选查询参数
+@app.get("/show/")
+async def show_data(page: Optional['int'] = 1):
+    return {"message": f"current page:{page}"}
+
+
+# post请求
+
+class UserSchema(BaseModel):
+    name: str
+    age: int
+    email: str
+
+
+@app.post("/create_user",status_code=201) # 可以在这里设置状态码
+async def create_user(post_data: UserSchema):
+    users = []
+    new_user = {
+        "name": post_data.name,
+        "age": post_data.age,
+        "email": post_data.email
+    }
+    users.append(new_user)
+
+    return {
+        "msg": "User Created...",
+        "new user": new_user
+    }
+
+
+```
+## 效果如下<br>
+<img width="1425" height="764" alt="image" src="https://github.com/user-attachments/assets/43932b2b-ff94-4766-a718-800444f11f03" /><br>
+
+## 3.fastapi获取请求头信息,需要使用fastapi提供的Header函数
+```
+from fastapi import FastAPI, Header
+from typing import Optional
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+@app.get("/")
+async def home():
+    return {"message": "Hello World From FastApi..."}
+
+
+@app.get("/greet/{username}")  # 带参数的路由
+async def greet(username: str) -> dict:
+    return {"message": f"Hello, {username}"}
+
+
+# querystring
+user_list = [
+    "Jerry",
+    "Joey",
+    "Phil"
+]
+
+
+@app.get("/search")
+async def do_search(username: str):
+    if username in user_list:
+        return {"result": "User exists"}
+    else:
+        return {"result": "User not exists"}
+
+
+# 同时使用路径参数和查询参数： http://127.0.0.1:8000/info/Jack?age=20&address=kingston&email=Jack123@gmail.com
+@app.get("/info/{name}")
+async def user_info(name, age, address, email):
+    return {"Name": f"{name}", "age": age, "address": address, "email": email}
+
+
+# 可选查询参数
+@app.get("/show/")
+async def show_data(page: Optional['int'] = 1):
+    return {"message": f"current page:{page}"}
+
+
+# post请求
+
+class UserSchema(BaseModel):
+    name: str
+    age: int
+    email: str
+
+
+@app.post("/create_user",status_code=201)
+async def create_user(post_data: UserSchema):
+    users = []
+    new_user = {
+        "name": post_data.name,
+        "age": post_data.age,
+        "email": post_data.email
+    }
+    users.append(new_user)
+
+    return {
+        "msg": "User Created...",
+        "new user": new_user
+    }
+
+
+@app.get('/get_headers')
+async def get_headers_info(
+        accept: Optional[str] = Header(None),
+        content_type: Optional[str] = Header(None),
+        user_agent: Optional[str] = Header(None),
+        accept_encoding: Optional[str] = Header(None),
+        referer: Optional[str] = Header(None),
+        connection: Optional[str] = Header(None),
+        accept_language: Optional[str] = Header(None),
+        host: Optional[str] = Header(None)
+):
+    req_headers = {}
+    req_headers['Content-Type'] = content_type
+    req_headers['Accept'] = accept
+    req_headers['User_Agent'] = user_agent
+    req_headers['Accept_Encoding'] = accept_encoding
+    req_headers['Referer'] = referer
+    req_headers['Connection'] = connection
+    req_headers['Accept_Language'] = accept_language
+    req_headers['Host'] = host
+
+    return req_headers
+
+```
+## 效果如下<br>
+<img width="1414" height="782" alt="image" src="https://github.com/user-attachments/assets/12c09459-4bd1-48d4-87ce-0bf6192118da" /><br>
+
+
+
+
+
 
 
 
