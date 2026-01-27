@@ -1,6 +1,6 @@
 # 用fastapi实现增删改查<br>
 ## 1.我们这一节课学习的路径如下<br>
-<img width="1434" height="579" alt="image" src="https://github.com/user-attachments/assets/cbd0d13f-01dc-42da-8a3c-a0a7984f45ea" />
+<img width="1434" height="579" alt="image" src="https://github.com/user-attachments/assets/cbd0d13f-01dc-42da-8a3c-a0a7984f45ea" /><br>
 ### 1> 查找所有，这个非常简单
 ```
 from fastapi import FastAPI, status
