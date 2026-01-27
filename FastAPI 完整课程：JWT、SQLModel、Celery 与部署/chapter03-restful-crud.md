@@ -187,7 +187,7 @@ async def get_book(book_id:int):
             return {"Book Exists": book}
             # 注意：if后面不要接else，否则只能够找到第一本书，因为如果book_id不等于第一本书的id就说找不到是不对的，
             # 必须遍历整个列表后没有找到才在for循环的外面说找不到
-    return {"result":"Book Not Found"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
 ```
 ### 效果<br>
