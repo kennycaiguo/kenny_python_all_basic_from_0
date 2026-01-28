@@ -396,6 +396,110 @@ async def path_book(book_id:int,update_data:BookUpdateModel):
 <img width="1392" height="749" alt="image" src="https://github.com/user-attachments/assets/f5b2d2ff-e1ce-48a0-97a9-794533d6d4f1" /><br>
 <img width="1404" height="755" alt="image" src="https://github.com/user-attachments/assets/0f7801a3-8b45-4377-b8f5-8fb0711a50d6" /><br>
 
+### 5>delete方法，根据id来删除一本书
+```
+from fastapi import FastAPI, status
+from fastapi.exceptions import HTTPException
+from pydantic import BaseModel
+from typing import List
+
+app = FastAPI()
+# 用一个列表来模拟数据库
+books = [
+    {
+        "id": 1,
+        "title": "Think Python",
+        "author": "Allen B. Downey",
+        "publisher": "O'Reilly Media",
+        "published_date": "2021-01-01",
+        "page_count": 1234,
+        "language": "English",
+    },
+    {
+        "id": 2,
+        "title": "Django By Example",
+        "author": "Antonio Mele",
+        "publisher": "Packt Publishing Ltd",
+        "published_date": "2022-01-19",
+        "page_count": 1023,
+        "language": "English",
+    },
+    {
+        "id": 3,
+        "title": "The web socket handbook",
+        "author": "Alex Diaconu",
+        "publisher": "Xinyu Wang",
+        "published_date": "2021-01-01",
+        "page_count": 3677,
+        "language": "English",
+    },
+    {
+        "id": 4,
+        "title": "Head first Javascript",
+        "author": "Hellen Smith",
+        "publisher": "Oreilly Media",
+        "published_date": "2021-01-01",
+        "page_count": 540,
+        "language": "English",
+    },
+    {
+        "id": 5,
+        "title": "Algorithms and Data Structures In Python",
+        "author": "Kent Lee",
+        "publisher": "Springer, Inc",
+        "published_date": "2021-01-01",
+        "page_count": 9282,
+        "language": "English",
+    },
+    {
+        "id": 6,
+        "title": "Head First HTML5 Programming",
+        "author": "Eric T Freeman",
+        "publisher": "O'Reilly Media",
+        "published_date": "2011-21-01",
+        "page_count": 3006,
+        "language": "English",
+    },
+]
+
+
+class Book(BaseModel):
+    id: int
+    title: str
+    author: str
+    publisher: str
+    published_date: str
+    page_count: int
+    language: str
+
+
+class BookUpdateModel(BaseModel):
+    title: str
+    author: str
+    publisher: str
+    page_count: int
+    language: str
+
+
+# 根据id来删除书本,good
+@app.delete("/book/{bid}")
+async def delete_book(bid: int):
+    for book in books:
+        if book["id"] == bid:
+            removed = book
+            books.remove(book)
+            return {
+                "removed book": removed
+            }
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+```
+
+### 效果<br>
+<img width="1420" height="825" alt="image" src="https://github.com/user-attachments/assets/9aa355b2-aff9-4da8-be8d-d13822e5f8f3" /><br>
+<img width="1464" height="691" alt="image" src="https://github.com/user-attachments/assets/e2ff9ba3-d3b2-4a76-abae-d85d95b9fc09" /><br>
+
+
 
 
 
