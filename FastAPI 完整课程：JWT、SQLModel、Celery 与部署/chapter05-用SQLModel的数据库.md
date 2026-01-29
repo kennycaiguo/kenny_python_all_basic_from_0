@@ -10,6 +10,7 @@
 <img width="1670" height="926" alt="image" src="https://github.com/user-attachments/assets/986e8bd3-eef2-499c-ba69-7c3dd452f753" /><br>
 ## 5.我们在项目名称里面输入bookly，版本选择16<br>
 <img width="1459" height="948" alt="image" src="https://github.com/user-attachments/assets/e9fdcfef-f4ab-4d05-bd4c-2c0d2ecb3de8" /><br>
+
 ## 6.点击创建项目，就会进入这个界面<br>
 <img width="1836" height="985" alt="image" src="https://github.com/user-attachments/assets/062d3e3e-b6b0-4525-97d6-012b324583ae" /><br>
 ## 7.点击connect按钮，就会弹出这个界面，它默认帮我们新建一个neondb数据库，我们也可以创建自己的数据库，注意：连接字符串需要复制下来<br>
