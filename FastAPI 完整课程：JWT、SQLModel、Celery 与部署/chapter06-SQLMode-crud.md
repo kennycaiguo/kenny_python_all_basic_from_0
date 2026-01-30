@@ -32,13 +32,6 @@ class Book(SQLModel, table=True):
     def __repr__(self):
         return f"<Book: {self.title}>"
 
-# class BookUpdateModel():
-#     title: str
-#     author: str
-#     publisher: str
-#     page_count: int
-#     language: str
-
 ```
 ## 2.然后我们需要进入postgres数据库控制台或者管理工具，把我们的books表格删除<br>
 <img width="1202" height="688" alt="image" src="https://github.com/user-attachments/assets/cc896256-f434-4bea-b5a4-41a2f0791679" /><br>
