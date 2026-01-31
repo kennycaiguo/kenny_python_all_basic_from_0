@@ -156,9 +156,9 @@ class Book(SQLModel, table=True):
 #### 注意：每一次修改了模型，我们需要把数据表删除，然后重新启动服务器来生成新的表。
 ### 5.在books包里面新建一个service.py文件，然后在这里新建一个BookService类，代码如下<br>
 ```
-from fastapi import status, HTTPException
+from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, desc, update
+from sqlmodel import select, desc
 from src.books.schemas import BookCreateModel, BookUpdateModel
 from .models import Book
 
@@ -180,30 +180,32 @@ class BookService:
         new_book = Book(
             **book_data_dict
         )
+        new_book.published_date = datetime.strptime(book_data_dict['published_date'], "%Y-%m-%d")
         session.add(new_book)  # 添加数据使用session.add方法
         await session.commit()  # 添加数据需要调用提交方法
 
         return new_book
 
     async def update_book(self, book_uid: str, update_data: BookUpdateModel, session: AsyncSession):
-        book_to_update = self.get_book(book_uid, session)
+        book_to_update = await self.get_book(book_uid, session)
         if book_to_update is not None:
             update_data_dict = update_data.model_dump()
             for k, v in update_data_dict.items():
                 setattr(book_to_update, k, v)
             await session.commit()
             return book_to_update
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        else:
+            return None
 
     async def delete_book(self, book_uid: str, session: AsyncSession):
-        book_to_delete = self.get_book(book_uid, session)
+        book_to_delete = await self.get_book(book_uid, session)
         if book_to_delete is not None:
             await session.delete(book_to_delete)
             await session.commit()
-            return {
-                "Message": "Book Deleted..."
-            }
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+            return book_to_delete
+        else:
+            return None
+
 
 ```
 ### 6.然后我们需要在路由文件里面使用session，我们需要进入db包里面的main.py,在里面创建一个函数get_session,代码如下
@@ -243,7 +245,7 @@ async def get_session() -> AsyncSession:
         yield session
 
 ```
-### 7.然后我们进入books/routes.py文件，在这里使用这个session
+### 7.然后我们进入books/routes.py文件，在这里使用这个session，我们这里学习一种叫做依赖注入的方法
 ```
 
 ```
