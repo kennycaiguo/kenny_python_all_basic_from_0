@@ -63,16 +63,16 @@ from datetime import datetime
 import uuid
 
 
-# class Book(BaseModel): # 这个类其实是不需要的。
-#     uid: uuid.UUID
-#     title: str
-#     author: str
-#     publisher: str
-#     published_date: str
-#     page_count: int
-#     language: str
-#     created_at: datetime
-#     update_at: datetime
+class Book(BaseModel): # 用这个类也是可以的
+    uid: uuid.UUID
+    title: str
+    author: str
+    publisher: str
+    published_date: date
+    page_count: int
+    language: str
+    created_at: datetime
+    update_at: datetime
 
 
 class BookCreateModel(BaseModel):
@@ -90,16 +90,16 @@ from datetime import datetime
 import uuid
 
 
-# class Book(BaseModel):
-#     uid: uuid.UUID
-#     title: str
-#     author: str
-#     publisher: str
-#     published_date: str
-#     page_count: int
-#     language: str
-#     created_at: datetime
-#     update_at: datetime
+class Book(BaseModel): # 用这个类也是可以的
+    uid: uuid.UUID
+    title: str
+    author: str
+    publisher: str
+    published_date: date
+    page_count: int
+    language: str
+    created_at: datetime
+    update_at: datetime
 
 
 class BookCreateModel(BaseModel):
@@ -252,11 +252,11 @@ from fastapi import FastAPI, status, APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.exceptions import HTTPException
 
-from src.books.models import Book
+# from src.books.models import Book
 from src.db.main import get_session
 from src.books.service import BookService
 from typing import List
-from src.books.schemas import BookUpdateModel, BookCreateModel
+from src.books.schemas import Book, BookUpdateModel, BookCreateModel
 
 book_router = APIRouter()
 book_service = BookService()
@@ -286,7 +286,7 @@ async def create_book(book_data: BookCreateModel, session: AsyncSession = Depend
 
 
 # 部分更新书本
-@book_router.patch("/{book_id}")
+@book_router.patch("/{book_id}",response_model=Book)
 async def path_book(book_id: str, update_data: BookUpdateModel, session: AsyncSession = Depends(get_session)):
     book_to_update = await book_service.update_book(book_id,update_data,session)
     if book_to_update is not None:
@@ -325,5 +325,5 @@ async def delete_book(bid: str, session: AsyncSession = Depends(get_session)):
 ## 然后我们再来查找这不是，就找不到了，说明删除成功 <br>
 <img width="1441" height="570" alt="image" src="https://github.com/user-attachments/assets/7d5bf3d7-9da0-4bd0-993c-ef87fa6ff58a" /><br>
 ### 这一节的学习到此为止。需要注意，不要把数据类型搞错了，否则会有很多奇怪的错误<br>
-
+### 注意，我们可以使用schemas.py里面的Book类来代替models.py里面的Book类，前提是他们的字段类型和字段数量必须完全一样。<br>
 
