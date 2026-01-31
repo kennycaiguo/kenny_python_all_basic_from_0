@@ -56,23 +56,23 @@ class Book(BaseModel):
     created_at: datetime
     update_at: datetime
 ```
-### 4.1然后创建一个BookCreateModel类，代码如下<br>
+### 4.1然后创建一个BookCreateModel类，把这个Book类注释掉，否则后面你可能因为导入错误的类而经常出错。代码如下<br>
 ```
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
 
 
-class Book(BaseModel):
-    uid: uuid.UUID
-    title: str
-    author: str
-    publisher: str
-    published_date: str
-    page_count: int
-    language: str
-    created_at: datetime
-    update_at: datetime
+# class Book(BaseModel): # 这个类其实是不需要的。
+#     uid: uuid.UUID
+#     title: str
+#     author: str
+#     publisher: str
+#     published_date: str
+#     page_count: int
+#     language: str
+#     created_at: datetime
+#     update_at: datetime
 
 
 class BookCreateModel(BaseModel):
@@ -90,16 +90,16 @@ from datetime import datetime
 import uuid
 
 
-class Book(BaseModel):
-    uid: uuid.UUID
-    title: str
-    author: str
-    publisher: str
-    published_date: str
-    page_count: int
-    language: str
-    created_at: datetime
-    update_at: datetime
+# class Book(BaseModel):
+#     uid: uuid.UUID
+#     title: str
+#     author: str
+#     publisher: str
+#     published_date: str
+#     page_count: int
+#     language: str
+#     created_at: datetime
+#     update_at: datetime
 
 
 class BookCreateModel(BaseModel):
@@ -120,7 +120,7 @@ class BookUpdateModel(BaseModel):
 
 ```
 
-### 4.2然后我们需要在models.py里面把Book类的出版日期的类型修改一下(注意，我们有2个Book类，一个是数据库模型的Book类，另外一个是Python的Book类，他们的一些数据类型是不一样的，但是可以转化)<br>
+### 4.2然后我们需要在models.py里面把Book类的出版日期的类型修改一下<br>
 ```
 from sqlmodel import SQLModel, Field, Column
 import sqlalchemy.dialects.postgresql as pg
@@ -230,7 +230,6 @@ async_engine = AsyncEngine(
 
 async def init_db():
     async with async_engine.begin() as conn:
-        from src.books.models import Book
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
@@ -245,7 +244,86 @@ async def get_session() -> AsyncSession:
         yield session
 
 ```
-### 7.然后我们进入books/routes.py文件，在这里使用这个session，我们这里学习一种叫做依赖注入的方法
+### 7.然后我们进入books/routes.py文件，在这里使用这个session，我们这里学习一种叫做依赖注入的方法，然后我们在路由函数里面调用BookService的功能，代码如下
 ```
+from datetime import datetime
 
+from fastapi import FastAPI, status, APIRouter, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi.exceptions import HTTPException
+
+from src.books.models import Book
+from src.db.main import get_session
+from src.books.service import BookService
+from typing import List
+from src.books.schemas import BookUpdateModel, BookCreateModel
+
+book_router = APIRouter()
+book_service = BookService()
+
+
+@book_router.get("/",response_model=List[Book])
+async def get_all_books(session: AsyncSession = Depends(get_session)):
+    return await book_service.get_all_books(session)
+
+
+@book_router.get("/{book_id}")
+async def get_book(book_id: str, session: AsyncSession = Depends(get_session)):
+    book = await book_service.get_book(book_id, session)
+    if book is not None:
+        return book
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
+
+
+# 创建一本书,有防止重复创建相同的书的功能
+@book_router.post("/",status_code=status.HTTP_201_CREATED,response_model=Book)
+async def create_book(book_data: BookCreateModel, session: AsyncSession = Depends(get_session)):
+    new_book = await book_service.create_book(book_data, session)
+    return new_book
+
+
+# 部分更新书本
+@book_router.patch("/{book_id}")
+async def path_book(book_id: str, update_data: BookUpdateModel, session: AsyncSession = Depends(get_session)):
+    book_to_update = await book_service.update_book(book_id,update_data,session)
+    if book_to_update is not None:
+        return book_to_update
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+
+# 根据id来删除书本,good
+@book_router.delete("/{bid}")
+async def delete_book(bid: str, session: AsyncSession = Depends(get_session)):
+    book_to_delete = await book_service.delete_book(bid,session)
+    if book_to_delete is not None:
+        return {"Book deleted":book_to_delete}
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 ```
+## 测试1，新增<br>
+<img width="1437" height="817" alt="image" src="https://github.com/user-attachments/assets/3645dbd9-528a-476e-8897-2adf350736ab" /><br>
+## 查看数据库，发现数据成功添加了<br>
+<img width="1525" height="365" alt="image" src="https://github.com/user-attachments/assets/a2c18dcf-eab3-4db7-b072-b2b6425c78f9" /><br>
+## 测试2，查看所有<br>
+<img width="1437" height="771" alt="image" src="https://github.com/user-attachments/assets/e6d2d70d-c7de-493c-bf3b-ccda55c00b62" /><br>
+## 测试3.查找一本书，如果数的id存在，就可以找到书<br>
+<img width="1483" height="783" alt="image" src="https://github.com/user-attachments/assets/2596e50d-1b49-4e72-ad00-79db0418c8ff" /><br>
+### 如果数的id不存在，就找不到书<br>
+<img width="1486" height="665" alt="image" src="https://github.com/user-attachments/assets/26fb9d87-bca0-4238-8a33-63ca3f3f404c" /><br>
+## 测试4.更新书籍，先找到一本书，他的数据是这样子的<br>
+<img width="1425" height="744" alt="image" src="https://github.com/user-attachments/assets/2a723d9c-d228-4411-8deb-f4ccabf2b12b" /><br>
+## 然后我们把他的数据修改一下<br>
+<img width="1426" height="774" alt="image" src="https://github.com/user-attachments/assets/fc6d23ed-2e8e-4a93-a83e-14dcf03a9136" /><br>
+## 然后我们再用他的id查找一下，发现数据修改成功了<br>
+<img width="1442" height="734" alt="image" src="https://github.com/user-attachments/assets/270b5d0f-5c94-498f-93df-9567c109aca7" /><br>
+## 测试5，删除书籍，我们打开删除路由，把刚才那本书的id添加到路由中，然后点击发送，返回信息说书本被删除了<br>
+<img width="1424" height="778" alt="image" src="https://github.com/user-attachments/assets/1bc3fce0-9006-4b61-b1f2-c41b9a142a10" /><br>
+## 然后我们再来查找这不是，就找不到了，说明删除成功 <br>
+<img width="1441" height="570" alt="image" src="https://github.com/user-attachments/assets/7d5bf3d7-9da0-4bd0-993c-ef87fa6ff58a" /><br>
+### 这一节的学习到此为止。需要注意，不要把数据类型搞错了，否则会有很多奇怪的错误<br>
+
+
