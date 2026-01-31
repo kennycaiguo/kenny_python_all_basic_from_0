@@ -267,7 +267,7 @@ async def get_all_books(session: AsyncSession = Depends(get_session)):
     return await book_service.get_all_books(session)
 
 
-@book_router.get("/{book_id}")
+@book_router.get("/{book_id}",response_model=Book)
 async def get_book(book_id: str, session: AsyncSession = Depends(get_session)):
     book = await book_service.get_book(book_id, session)
     if book is not None:
