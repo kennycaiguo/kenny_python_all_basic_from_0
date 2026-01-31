@@ -120,7 +120,7 @@ class BookUpdateModel(BaseModel):
 
 ```
 
-### 4.2然后我们需要在models.py里面把Book类的出版日期的类型修改一下<br>
+### 4.2然后我们需要在models.py里面把Book类的出版日期的类型修改一下，注意Book数据类型类(继承自SQLModel)比BookCreateModel类多了3个字段，但是他们都有默认值，不用管。<br>
 ```
 from sqlmodel import SQLModel, Field, Column
 import sqlalchemy.dialects.postgresql as pg
