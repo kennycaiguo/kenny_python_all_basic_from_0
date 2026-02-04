@@ -55,8 +55,65 @@ async def create_user_account(user_data:UserCreateModel):
 ```
 ## 2.7>然后我们需要创建一个service.py文件<br>
 <img width="518" height="704" alt="image" src="https://github.com/user-attachments/assets/f1e5f911-7a5d-443c-97fc-8d9ea70ba1ea" /><br>
+## 2.7.2我们需要安装passlib用来给密码生成哈希值，命令如下
+```
+pip install passlib
+```
+<img width="970" height="193" alt="image" src="https://github.com/user-attachments/assets/3472e747-1dcd-4934-a7bd-eec919ad92ed" /><br>
+### 然后我们需要在auth包里面新建一个utils.py文件，把passlib的方法调用写在里面
+```
+from passlib.context import CryptContext
+
+passwd_context = CryptContext(
+    schemes=['bcrypt']
+)
 
 
+def generate_passwd_hash(passwd: str) -> str:
+    hash = passwd_context.hash(passwd)
+
+    return hash
+
+
+def verify_passwd(passwd: str, hash: str) -> bool:
+    return passwd_context.verify(passwd, hash)
+
+```
+### 然后，我们来创建一个UserService类，添加查找用户，判断用户是否存在和创建用户方法，代码如下<br>
+```
+from .models import User
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
+
+from .schemas import UserCreateModel
+from .utils import generate_passwd_hash
+
+
+class UserService:
+    async def get_user_by_email(self, email: str, session: AsyncSession):
+        stmt = select(User).where(User.email == email)
+        result = await session.exec(stmt)
+        return result.first()
+
+    async def user_exists(self,email,session:AsyncSession):
+        user = await self.get_user_by_email(email,session)
+        return True if user is not None else False
+
+    async def create_user(self,user_data:UserCreateModel,sesson:AsyncSession):
+        user_data_dict = user_data.model_dump()
+        new_user = User(
+            ** user_data_dict
+        )
+        new_user.password_hash = generate_passwd_hash(user_data["password"])
+        sesson.add(new_user)
+        await sesson.commit()
+        return new_user
+
+```
+## 2.8>回到auth/routes.py里面，继续完成我们的路由函数
+```
+
+```
 
 
 
