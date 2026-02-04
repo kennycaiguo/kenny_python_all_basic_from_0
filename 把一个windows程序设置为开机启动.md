@@ -18,7 +18,7 @@ net start postgresql-x64-17
 <img width="874" height="681" alt="image" src="https://github.com/user-attachments/assets/d4fb514c-5e85-428c-a46d-ba3969de3046" /><br>
 ## 5>点击下一页，最后，选择我们的脚本（就是方法一里面创建的那个基本），然后点击下一页完成，重启电脑<br>
 <img width="859" height="693" alt="image" src="https://github.com/user-attachments/assets/475b2b31-68d5-4d98-8874-52ae7ee87970" /><br>
-
+## 6>点击下一页,然后点击下一页完成，重启电脑<br>
 
 
 
