@@ -37,7 +37,7 @@ from sqlmodel import Field
 
 
 class UserCreateModel(BaseModel):
-    username: str = Field(max_length=50)
+    username: str = Field(max_length=50)  # 注意：用户名不一定是first_name + last_name,他们可以不一样的。
     first_name: str = Field(max_length=25)
     last_name: str = Field(max_length=25)
     email: str = Field(max_length=40)
