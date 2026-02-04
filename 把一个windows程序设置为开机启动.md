@@ -4,8 +4,9 @@
 net start postgresql-x64-17
 ```
 # 2.然后打开注册表编辑器，找到： 计算机\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run，新建一个字符串值，内容如下
-<img width="1115" height="511" alt="image" src="https://github.com/user-attachments/assets/c34d6bb5-a915-4417-a7c2-2ed4778a7022" />
-# 3.然后保存退出，重新启动电脑。
+<img width="1115" height="511" alt="image" src="https://github.com/user-attachments/assets/c34d6bb5-a915-4417-a7c2-2ed4778a7022" /><br>
+# 3.然后保存退出，重新启动电脑。<br>
+
 # 方法二，如果上面的方法没有用，可以使用任务计划具体操作如下：
 ## 1>在计算机图标上面点击右键-》更多选项-》管理-》任务计划，就会出现下面的界面<br>
 <img width="1249" height="889" alt="image" src="https://github.com/user-attachments/assets/e486eb3e-f091-47cf-9016-c7977524f763" /><br>
