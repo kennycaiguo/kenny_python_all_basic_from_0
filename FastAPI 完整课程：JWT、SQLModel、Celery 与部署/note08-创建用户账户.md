@@ -85,6 +85,37 @@ def verify_passwd(passwd: str, hash: str) -> bool:
     return passwd_context.verify(passwd, hash)
 
 ```
+## 2.8.2>我们需要在auth/schemas.py里面新建一个UserModel类，内容如下
+```
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel
+from sqlmodel import Field
+
+
+class UserCreateModel(BaseModel):
+    username: str = Field(max_length=50)
+    first_name: str = Field(max_length=25)
+    last_name: str = Field(max_length=25)
+    email: str = Field(max_length=40)
+    password: str = Field(min_length=6)
+
+
+class UserModel(BaseModel):
+    uid:uuid.UUID
+    username: str
+    first_name: str
+    last_name: str
+    is_verified: bool
+    email: str
+    password_hash: str = Field(exclude=True)
+    created_at: datetime
+    update_at: datetime
+
+
+```
+
 ### 2.9>然后，我们来创建一个UserService类，添加查找用户，判断用户是否存在和创建用户方法，代码如下<br>
 ```
 from .models import User
@@ -116,38 +147,8 @@ class UserService:
         return new_user
 
 ```
-## 3>我们需要在auth/schemas.py里面新建一个UserModel类，内容如下
-```
-import uuid
-from datetime import datetime
 
-from pydantic import BaseModel
-from sqlmodel import Field
-
-
-class UserCreateModel(BaseModel):
-    username: str = Field(max_length=50)
-    first_name: str = Field(max_length=25)
-    last_name: str = Field(max_length=25)
-    email: str = Field(max_length=40)
-    password: str = Field(min_length=6)
-
-
-class UserModel(BaseModel):
-    uid:uuid.UUID
-    username: str
-    first_name: str
-    last_name: str
-    is_verified: bool
-    email: str
-    password_hash: str = Field(exclude=True)
-    created_at: datetime
-    update_at: datetime
-
-
-```
-
-## 3.2>回到auth/routes.py里面，继续完成我们/signup的路由函数
+## 3>回到auth/routes.py里面，继续完成我们/signup的路由函数
 ```
 from fastapi import APIRouter, Depends, status
 from .schemas import UserCreateModel, UserModel
@@ -175,7 +176,7 @@ async def create_user_account(user_data: UserCreateModel,session:AsyncSession = 
     return new_user
 
 ```
-## 3.3 然后我们需要在src/__init__.py里面注册这个路由<br>
+## 3.1 然后我们需要在src/__init__.py里面注册这个路由<br>
 ```
 from fastapi import FastAPI
 from src.books.routes import book_router
