@@ -62,7 +62,7 @@ async def create_user_account(user_data:UserCreateModel):
 pip install passlib
 ```
 <img width="970" height="193" alt="image" src="https://github.com/user-attachments/assets/3472e747-1dcd-4934-a7bd-eec919ad92ed" /><br>
-## 2.7.2然后还需要安装bcrypt,注意：版本不要太高，4.0.1就好
+## 2.7.2然后还需要安装bcrypt,注意：版本不要太高，4.0.1就好，5.0以上的版本会报错<br>
 ```
 pip install "bcrypt==4.0.1"
 ```
