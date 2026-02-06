@@ -61,7 +61,7 @@ class RefreshTokenBearer(TokenBearer):
 ### 我们继续来完成这个路由,我们先写一个框架，加入依赖注入，简单返回一个{}<br>
 <img width="1189" height="667" alt="image" src="https://github.com/user-attachments/assets/cb9e2b1a-f25c-41f0-a1cb-1651cf1ec0ef" /><br>
 ### 然后我们在postman里面测试，先不在请求头里面携带然后token，此时会报错说没有授权<br>
-<img width="1401" height="790" alt="image" src="https://github.com/user-attachments/assets/a38a8a47-fbf1-47cd-bd1a-182082f91ae5" /><br>
+<img width="1457" height="593" alt="image" src="https://github.com/user-attachments/assets/648f4bb6-d57c-4284-9cb2-bb8327d3b756" /><br>
 ### 然后我们在请求头里面添加access_token令牌，然后再发送请求此时会报错说需要刷新令牌<br>
 <img width="1438" height="650" alt="image" src="https://github.com/user-attachments/assets/46cde503-18ca-4d5c-9165-debc2a238a42" /><br>
 ### 然后我们在请求头里面添加refresh_token令牌，然后再发送请求此时验证通过<br>
