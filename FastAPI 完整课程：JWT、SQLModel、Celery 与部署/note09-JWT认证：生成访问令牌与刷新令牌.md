@@ -54,9 +54,10 @@ def verify_passwd(passwd: str, hash: str) -> bool:
 
 
 def create_access_token(user_data: dict, expiry: timedelta = None, refresh: bool = False):
+    exp =  datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY)) # 这里需要括号，否则会报错
     payload = {
         'user': user_data,
-        'exp': datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY)), # 这里需要括号，否则会报错
+        'exp':exp.timestamp(),  # 大坑，这里需要timestamp如果你不是传递timestamp，后续使用jwt.decode(token,key,algo)就会报错。
         'jti': str(uuid.uuid4()),
         'refresh': refresh
     }
