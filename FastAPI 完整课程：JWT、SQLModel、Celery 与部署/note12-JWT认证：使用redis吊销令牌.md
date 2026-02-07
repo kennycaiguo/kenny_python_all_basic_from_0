@@ -22,9 +22,9 @@
 ## 然后服务就启动了<br>
 <img width="871" height="708" alt="image" src="https://github.com/user-attachments/assets/3f59c7e6-7de1-409a-97a0-2de1d919c82f" /><br>
 
-## 2.1>我们需要安装一个库：aioredis
+## 2.1>我们需要安装一个库：aioredis，建议还是安装redis-py ： pip install redis，因为aioredis不维护了，会报错
 ```
-pip install aioredis
+pip install redis
 ```
 <img width="1322" height="345" alt="image" src="https://github.com/user-attachments/assets/ba2da092-7592-4997-8ad6-1edbabc1b331" /><br>
 ## 2.1.2>为了编程方便，我们可以在.env文件里面配置REDIS_HOST,他的值是localhost，然后设置REDIS_PORT为6379<br>
@@ -51,7 +51,7 @@ Config = Settings()
 
 ## 2.2>在db包里面新建一个redis.py文件，他的主要作用是代码如下<br>
 ```
-import aioredis
+from redis import asyncio as aioredis
 from src.config import Config
 
 JTI_EXPIRY = 3600
@@ -228,7 +228,7 @@ async def remove_token(token_details: dict = Depends(AccessTokenBearer())):
     )
 
 ```
-## 运行程序保存，可能是aioredis出错，我们把它卸载<br>
+## 运行程序，如果你使用aioredis，会报错出错，我们把它卸载<br>
 <img width="931" height="288" alt="image" src="https://github.com/user-attachments/assets/869a08bf-90db-41e5-8133-ac5def1a3445" /><br>
 ## 然后我们来安装redis-py<br>
 ```
@@ -238,6 +238,13 @@ pip install redis
 <img width="839" height="416" alt="image" src="https://github.com/user-attachments/assets/32754e3b-7ce6-43ac-80ec-325a2a49a887" /><br>
 ## 测试，我们在postman的auth文件夹里面新建一个请求：/logout，请求头先不带bearer，就会报一个没有权限的错误<br>
 <img width="1441" height="729" alt="image" src="https://github.com/user-attachments/assets/50fb1d69-9c0a-48ad-bdcf-83b91c46f468" /><br>
+### 然后我们在请求头里面添加我们的access_token，再发送请求，成功退出登录<br>
+<img width="1419" height="705" alt="image" src="https://github.com/user-attachments/assets/20480fba-7132-45db-95e0-9c179031d98d" /><br>
+### 然后你尝试访问需要access_token的路由，发现就会报错说token无效<br>
+<img width="1499" height="842" alt="image" src="https://github.com/user-attachments/assets/6eda49e2-765a-4dee-8cb7-af1cf073722e" /><br>
+### 重新登录，然后在请求头里面设置新的访问令牌，发现有好使了<br>
+<img width="1410" height="850" alt="image" src="https://github.com/user-attachments/assets/84d445e3-5463-40d9-8cf7-f492daa4fffe" /><br>
+
 
 
 
