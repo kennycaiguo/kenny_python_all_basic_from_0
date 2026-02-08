@@ -94,8 +94,97 @@ alembic upgrade head
 <img width="1131" height="179" alt="image" src="https://github.com/user-attachments/assets/bc371cf4-be8e-4057-8a22-ebe9ea5c4407" /><br>
 ## 3.4执行命令后，我们可以用navicat17查看一下数据库，可以看到我们以前创建的用户默认角色都是user<br>
 <img width="1556" height="648" alt="image" src="https://github.com/user-attachments/assets/9412d521-1b4d-46bb-9793-3dab10e70005" /><br>
+# 4.修改创建用户的函数，也就是/signup路由对应的函数里面调用的UserService里面的create_user函数添加设置用户角色的代码<br>
+<img width="1086" height="667" alt="image" src="https://github.com/user-attachments/assets/545fd88e-6baf-41bd-8037-c69b05304acd" /><br>
+## 4.2>修改/login路由对应的函数的创建令牌的代码，添加角色字段<br>
+<img width="1285" height="685" alt="image" src="https://github.com/user-attachments/assets/d976e8d9-7ab1-4809-85a9-3d1de180973b" /><br>
+## 5.修改auth/dependencies.py,添加一个依赖项类：RoleChecker<br>
+```
+from typing import List, Any
+
+from fastapi.security import HTTPBearer
+from fastapi.security.http import HTTPAuthorizationCredentials
+from fastapi import Request, HTTPException, status, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from .models import User
+from .service import UserService
+from .utils import decode_token
+from src.db.redis import jti_in_blocklist
+from src.db.main import get_session
+
+user_service = UserService()
 
 
+class TokenBearer(HTTPBearer):
+    def __init__(self, auto_error=True):
+        super().__init__(auto_error=auto_error)
+
+    async def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
+        creds = await super().__call__(request)
+        token = creds.credentials
+        token_data = decode_token(token)
+        print("refresh token_data:", token_data)
+        # 验证token是否是有效
+        if not self.token_valid(token):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail={"error": "Token is not valid or expired...",
+                                        "resolution": "Get new access_token"})
+        # 验证令牌是否有效后，还需要验证令牌是否在blocklist里面
+        if await jti_in_blocklist(token_data['jti']):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail={"error": "Token is blocked...", "resolution": "Get new access_token"})
+        self.verify_token_data(token_data)
+        return token_data
+
+    def token_valid(self, token: str) -> bool:
+        token_data = decode_token(token)
+        print(token_data)
+        return token_data is not None
+
+    def verify_token_data(self, token_data: dict) -> None:  # 这个方法相当于java中的接口，具体逻辑有子类实现
+        raise NotImplementedError("You need to over ride this method...")
+
+
+class AccessTokenBearer(TokenBearer):
+    def verify_token_data(self, token_data: dict) -> None:
+        # 验证是否是刷新令牌,如果是，说明令牌类型不正确，需要抛出另外一个异常
+        if token_data and token_data['refresh']:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please Provide Valid Access Token...")
+
+
+class RefreshTokenBearer(TokenBearer):
+    def verify_token_data(self, token_data: dict) -> None:
+        # 验证是否是刷新令牌,如果是，说明令牌类型不正确，需要抛出另外一个异常
+        if token_data and not token_data['refresh']:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please Provide Valid Refresh Token...")
+
+
+async def get_current_user(token_details: dict = Depends(AccessTokenBearer()),
+                           session: AsyncSession = Depends(get_session)):
+    user_email = token_details['user']['email']
+    user = await user_service.get_user_by_email(user_email, session)
+    return user
+
+
+# 注意，这个类需要用到上面的函数，需要定义在他的下面
+# 用户角色检查类,注意所有实现了__call__方法的类都可以被当作函数来调用，也就是是创建类对象的时候会自动调用__call__方法
+class RoleChecker:
+    def __init__(self, allowed_roles: List[str]) -> None:
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
+        if current_user.role in self.allowed_roles:
+            return True
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to perform this action."
+        )
+
+
+```
+## 6.然后我们给获取当前用户的路由添加这个依赖项<br>
 
 
 
