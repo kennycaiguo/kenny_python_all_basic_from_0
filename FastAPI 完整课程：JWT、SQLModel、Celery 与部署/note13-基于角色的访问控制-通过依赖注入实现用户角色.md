@@ -184,7 +184,150 @@ class RoleChecker:
 
 
 ```
-## 6.然后我们给获取当前用户的路由添加这个依赖项<br>
+## 6.然后我们给获取当前用户的路由添加这个依赖项，首先需要引入这个RoleChecker类并且创建一个该类的对象<br>
+<img width="1217" height="536" alt="image" src="https://github.com/user-attachments/assets/8e0952c8-25b8-4b9e-9504-0332ef0ea2a3" /><br>
+### 6.2>然后我们把这个依赖项注入到/me路由对应的路由函数中<br>
+<img width="1156" height="585" alt="image" src="https://github.com/user-attachments/assets/064b2627-dc5c-4e00-b2ec-2ef48f309b7f" /><br>
+### 此时你用postman访问这个路由，即使你的token是有效的，它也不能够访问<br>
+<img width="1418" height="604" alt="image" src="https://github.com/user-attachments/assets/2c5cadf5-042b-4ee9-973b-cd5ef5777564" /><br>
+### 6.3>然后你再修改有效允许列表<br>
+<img width="893" height="572" alt="image" src="https://github.com/user-attachments/assets/392b97ea-c1ed-42c7-9ab4-4506406f4b4e" /><br>
+### 你会发现，现在有能够访问了<br>
+<img width="1413" height="788" alt="image" src="https://github.com/user-attachments/assets/91b51d5f-b237-4e10-b9ed-d213fbf02e61" /><br>
+# 7.给books包里面的路由添加这个依赖项，打开books/routes.py,给每一个路由添加RoleCheker依赖<br>
+```
+from fastapi import FastAPI, status, APIRouter, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi.exceptions import HTTPException
+from src.db.main import get_session
+from src.books.service import BookService
+from typing import List
+from src.books.schemas import Book, BookUpdateModel, BookCreateModel
+from src.auth.dependencies import AccessTokenBearer, RoleChecker
+
+book_router = APIRouter()
+book_service = BookService()
+access_token_bearer = AccessTokenBearer()
+role_checker = RoleChecker(["admin", "user"])
+
+
+@book_router.get("/", response_model=List[Book])  # 在@@book_router的方法里面添加依赖会报错
+async def get_all_books(session: AsyncSession = Depends(get_session), user_details=Depends(access_token_bearer)
+                        , _: bool = Depends(role_checker)):
+    print("detail", user_details)
+    return await book_service.get_all_books(session)
+
+
+@book_router.get("/{book_id}", response_model=Book)
+async def get_book(book_id: str, session: AsyncSession = Depends(get_session),
+                   user_details=Depends(access_token_bearer), _: bool = Depends(role_checker)):
+    book = await book_service.get_book(book_id, session)
+    if book is not None:
+        return book
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
+
+
+# 创建一本书,有防止重复创建相同的书的功能
+@book_router.post("/", status_code=status.HTTP_201_CREATED, response_model=Book)
+async def create_book(book_data: BookCreateModel, session: AsyncSession = Depends(get_session),
+                      user_details=Depends(access_token_bearer), _: bool = Depends(role_checker)):
+    new_book = await book_service.create_book(book_data, session)
+    return new_book
+
+
+# 部分更新书本
+@book_router.patch("/{book_id}", response_model=Book)
+async def patch_book(book_id: str, update_data: BookUpdateModel, session: AsyncSession = Depends(get_session),
+                     user_details=Depends(access_token_bearer), _: bool = Depends(role_checker)):
+    book_to_update = await book_service.update_book(book_id, update_data, session)
+    if book_to_update is not None:
+        return book_to_update
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+
+# 根据id来删除书本,good
+@book_router.delete("/{bid}")
+async def delete_book(bid: str, session: AsyncSession = Depends(get_session),
+                      user_details=Depends(access_token_bearer), _: bool = Depends(role_checker)):
+    book_to_delete = await book_service.delete_book(bid, session)
+    if book_to_delete is not None:
+        return {"Book deleted": book_to_delete}
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+```
+## 7.2还可以怎么写<br>
+```
+from fastapi import FastAPI, status, APIRouter, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi.exceptions import HTTPException
+from src.db.main import get_session
+from src.books.service import BookService
+from typing import List
+from src.books.schemas import Book, BookUpdateModel, BookCreateModel
+from src.auth.dependencies import AccessTokenBearer, RoleChecker
+
+book_router = APIRouter()
+book_service = BookService()
+access_token_bearer = AccessTokenBearer()
+role_checker = Depends(RoleChecker(["admin", "user"])) # 依赖项一定要用Depends函数包装
+
+
+@book_router.get("/", response_model=List[Book], dependencies=[role_checker])  # 依赖项一定要用Depends函数包装
+async def get_all_books(session: AsyncSession = Depends(get_session), user_details=Depends(access_token_bearer)):
+    print("detail", user_details)
+    return await book_service.get_all_books(session)
+
+
+@book_router.get("/{book_id}", response_model=Book, dependencies=[role_checker])
+async def get_book(book_id: str, session: AsyncSession = Depends(get_session),
+                   user_details=Depends(access_token_bearer)):
+    book = await book_service.get_book(book_id, session)
+    if book is not None:
+        return book
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+        )
+
+
+# 创建一本书,有防止重复创建相同的书的功能
+@book_router.post("/", status_code=status.HTTP_201_CREATED, response_model=Book, dependencies=[role_checker])
+async def create_book(book_data: BookCreateModel, session: AsyncSession = Depends(get_session),
+                      user_details=Depends(access_token_bearer)):
+    new_book = await book_service.create_book(book_data, session)
+    return new_book
+
+
+# 部分更新书本
+@book_router.patch("/{book_id}", response_model=Book, dependencies=[role_checker])
+async def patch_book(book_id: str, update_data: BookUpdateModel, session: AsyncSession = Depends(get_session),
+                     user_details=Depends(access_token_bearer)):
+    book_to_update = await book_service.update_book(book_id, update_data, session)
+    if book_to_update is not None:
+        return book_to_update
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+
+# 根据id来删除书本,good
+@book_router.delete("/{bid}", dependencies=[role_checker])
+async def delete_book(bid: str, session: AsyncSession = Depends(get_session),
+                      user_details=Depends(access_token_bearer)):
+    book_to_delete = await book_service.delete_book(bid, session)
+    if book_to_delete is not None:
+        return {"Book deleted": book_to_delete}
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+```
+
+
+
 
 
 
