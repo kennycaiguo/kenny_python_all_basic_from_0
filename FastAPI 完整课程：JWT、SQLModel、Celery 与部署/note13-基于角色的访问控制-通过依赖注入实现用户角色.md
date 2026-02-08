@@ -77,7 +77,23 @@ async def get_current_user(token_details: dict = Depends(AccessTokenBearer()), s
 <img width="1435" height="703" alt="image" src="https://github.com/user-attachments/assets/d136e344-dfbf-45e1-b281-4262e0a308d5" /><br>
 ## 2.5>然后我们登录，并且把访问令牌添加到请求头中，再发送请求，就可以获取到当前用户的信息<br>
 <img width="1409" height="773" alt="image" src="https://github.com/user-attachments/assets/18bf8194-3fcf-4e30-9bb1-eba45697f7bd" /><br>
-
+# 3.给用户创建角色<br>
+## 3.1>打开auth/models.py给User类添加一个字段：role<br>
+<img width="1193" height="717" alt="image" src="https://github.com/user-attachments/assets/42697d8c-1c05-48bb-9bc5-8359277464cb" /><br>
+## 3.2>我们打开src文件夹里面的__init__.py,把数据库生命周期事件移除，因为我们现在使用alembic来帮助我们修改数据库<br>
+<img width="1183" height="700" alt="image" src="https://github.com/user-attachments/assets/53e57b88-0df7-4f00-acf1-a615a5f8378a" /><br>
+## 3.3需要使用alembic来生成迁移脚本并且做数据迁移,需要打开一个终端并且定位到项目的根目录，然后输入下面的命令<br>
+```
+$ alembic revision --autogenerate -m "add role to users table"
+```
+<img width="1405" height="484" alt="image" src="https://github.com/user-attachments/assets/763dbc04-9a1d-4684-ba04-c2879d662fa7" /><br>
+### 3.3.2>生成修订版后，我们需要更新到数据库，使用下面的命令
+```
+alembic upgrade head
+```
+<img width="1131" height="179" alt="image" src="https://github.com/user-attachments/assets/bc371cf4-be8e-4057-8a22-ebe9ea5c4407" /><br>
+## 3.4执行命令后，我们可以用navicat17查看一下数据库，可以看到我们以前创建的用户默认角色都是user<br>
+<img width="1556" height="648" alt="image" src="https://github.com/user-attachments/assets/9412d521-1b4d-46bb-9793-3dab10e70005" /><br>
 
 
 
