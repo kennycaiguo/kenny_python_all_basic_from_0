@@ -343,10 +343,389 @@ async def add_review_to_book(book_id: str,review_data: ReviewCreateModel,current
 ### 用postman测试一下，成功<br>
 <img width="1500" height="886" alt="image" src="https://github.com/user-attachments/assets/700efb02-b218-4936-8d1f-19803c3b6f93" /><br>
 ## 这样，我们获取当前用户的时候，就可以看到他添加了多少本书，并且发表了多少评论<br>
+# 注意：下面的内容老师的视频没有讲，我参考老师的GitHub page来完成
+## 6.2>然后我们回到reviews/service.py,添加获取一条评论，获取所有评论和删除一条评论的函数
+```
+from datetime import datetime
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select, desc
+from src.books.schemas import BookCreateModel, BookUpdateModel
+from src.db.models import Review
+from src.auth.service import UserService
+from src.books.service import BookService
+from .schemas import ReviewCreateModel, ReviewModel
+from fastapi.exceptions import HTTPException
+from fastapi import status
+import logging
+
+user_service = UserService()
+book_service = BookService()
 
 
+class ReviewService:
+    async def add_review_to_book(self, email: str, book_id: str, review_data: ReviewCreateModel, session: AsyncSession):
+        try:
+            book = await book_service.get_book(book_id, session)
+            user = await user_service.get_user_by_email(email, session)
+            review_data_dict = review_data.model_dump()
+            new_review = Review(**review_data_dict)
+            if not book:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Book not found"
+                )
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found"
+                )
+            new_review.user = user
+            new_review.book = book
+            # 保存到数据库
+            session.add(new_review)
+            await session.commit()
+
+            return new_review
+        except Exception as e:
+            logging.exception(e) # output error log
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Server error adding review..."
+            )
+
+    # 获取一条评论
+    async def get_review(self,review_id:str,session:AsyncSession):
+        stmt = select(Review).where(Review.uid == review_id)
+        result = await session.exec(stmt)
+        return result.first()
+
+    # 获取所有评论
+    async def get_reviews(self,session:AsyncSession):
+        stmt = select(Review).order_by(desc(Review.created_at))
+        result = await session.exec(stmt)
+
+        return result.all()
+
+    # 删除一条评论
+    async def delete_review_to_from_book(self, review_uid: str, email: str, session: AsyncSession):
+        user = await user_service.get_user_by_email(email,session)
+        review = await self.get_review(review_uid,session)
+        if not review or (review.user is not user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Can't delete this review..."
+            )
+        session.delete(review)
+        await session.commit()
+        return review
+```
+## 6.3>然后我们来完成reviews/routes.py里面的所有路由
+```
+from fastapi import FastAPI, status, APIRouter, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi.exceptions import HTTPException
+from src.db.main import get_session
+from .schemas import ReviewCreateModel
+from .service import ReviewService
+from typing import List
+from src.books.schemas import Book, BookUpdateModel, BookCreateModel
+from src.auth.dependencies import AccessTokenBearer, RoleChecker, get_current_user
+from ..db.models import User
+
+review_router = APIRouter()
+review_service = ReviewService()
+admin_checker = Depends(RoleChecker(allowed_roles=['admin']))
+user_checker = Depends(RoleChecker(allowed_roles=['user', 'admin']))
 
 
+@review_router.post("/book/{book_id}", dependencies=[user_checker])
+async def add_review_to_book(book_id: str, review_data: ReviewCreateModel,
+                             current_user: User = Depends(get_current_user),
+                             session: AsyncSession = Depends(get_session)):
+    new_review = await review_service.add_review_to_book(current_user.email, book_id, review_data, session)
+    return new_review
+
+
+@review_router.get("/", dependencies=[admin_checker])
+async def get_reviews(session: AsyncSession = Depends(get_session)):
+    reviews = await review_service.get_all_reviews(session)
+
+    return reviews
+
+
+@review_router.get("/{review_id}", dependencies=[user_checker])
+async def get_review(review_id: str, session: AsyncSession = Depends(get_session)):
+    review = await review_service.get_review(review_id, session)
+    if not review:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found"
+        )
+    return review
+
+
+@review_router.delete("/{review_id}", dependencies=[user_checker])
+async def delete_review(review_id:str,current_user:User=Depends(get_current_user),session: AsyncSession = Depends(get_session)):
+    await review_service.delete_review_to_from_book(review_id,current_user.email,session)
+    return {
+        "message":"review deleted..."
+    }
+
+```
+## 6.4>在测试中，我们发现无法创建管理员账户，我们来到auth/schemas.py，给UserModel和UserCreateModel添加role字段
+```
+import uuid
+from datetime import datetime
+from typing import List
+from pydantic import BaseModel
+from sqlmodel import Field
+from src.books.schemas import Book
+from src.reviews.schemas import ReviewModel
+
+
+class UserCreateModel(BaseModel):
+    username: str = Field(max_length=50)  # 注意：用户名不一定是first_name + last_name,他们可以不一样的。
+    first_name: str = Field(max_length=25)
+    last_name: str = Field(max_length=25)
+    role:str 
+    email: str = Field(max_length=40)
+    password: str = Field(min_length=6)
+
+
+class UserModel(BaseModel):
+    uid: uuid.UUID
+    username: str
+    first_name: str
+    last_name: str
+    role:str
+    is_verified: bool
+    email: str
+    password_hash: str = Field(exclude=True)
+    created_at: datetime
+    update_at: datetime
+
+
+class UserBooksModel(UserModel):
+    books: List[Book]
+    reviews: List[ReviewModel]
+
+
+class UserLoginModel(BaseModel):
+    email: str = Field(max_length=40)
+    password: str = Field(min_length=6)
+
+```
+## 6.5> 然后我们需要修改auth/sercice.py里面的UserService类的创建用户代码
+```
+from src.db.models import User
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select
+
+from .schemas import UserCreateModel
+from .utils import generate_passwd_hash
+
+
+class UserService:
+    async def get_user_by_email(self, email: str, session: AsyncSession):
+        stmt = select(User).where(User.email == email)
+        result = await session.exec(stmt)
+        return result.first()
+
+    async def user_exists(self, email, session: AsyncSession):
+        user = await self.get_user_by_email(email, session)
+        return True if user is not None else False
+
+    async def create_user(self, user_data: UserCreateModel, sesson: AsyncSession):
+        user_data_dict = user_data.model_dump()
+        new_user = User(
+            **user_data_dict
+        )
+        # print(user_data_dict["role"])
+        new_user.password_hash = generate_passwd_hash(user_data_dict["password"])
+        # 添加设置用户角色的代码
+        role = user_data_dict.get("role")
+        new_user.role = role
+        sesson.add(new_user)
+        await sesson.commit()
+        return new_user
+
+```
+## 用postman测试通过，注意：只有创建评论的人才能够删除评论，哪怕是管理员也不能删除别人的评论<br>
+<img width="1436" height="859" alt="image" src="https://github.com/user-attachments/assets/0ecc0657-203a-4b94-873a-dc97f451b5cf" /><br>
+<img width="1335" height="749" alt="image" src="https://github.com/user-attachments/assets/b9b968db-bd02-4f1e-9610-487b08061e83" /><br>
+<img width="1517" height="761" alt="image" src="https://github.com/user-attachments/assets/7be77611-3b1a-4634-9fbe-34f290929035" /><br>
+# 7.然后我们来把书籍和标签关联起来，他们的关系如图<br>
+<img width="878" height="542" alt="image" src="https://github.com/user-attachments/assets/fb094047-5337-4a24-9461-1af422790074" /><br>
+## 这里我们创建另外2张表格tags和book_tags,book_tags起到一个桥梁的作用，可以实现books和tags的多对多关系<br>
+## 7.1.我们需要在src/db/models.py里面创建2个类Tag和BookTag<br>
+<img width="1160" height="615" alt="image" src="https://github.com/user-attachments/assets/dd66a810-4a6e-4d7c-bab5-663743ce1cc1" /><br>
+## 7.2>然后用alembic创建一个修订，命令如下：
+```
+alembic revision --autogenerate -m "add book tags table"
+```
+## 7.3>然后执行upgrade命令迁移到数据库
+```
+alembic upgrade head
+```
+<img width="1472" height="527" alt="image" src="https://github.com/user-attachments/assets/46293aee-b421-47f8-9ca2-c8ae9c5f5d1b" /><br>
+## 7.4>到数据库查看，发现tag表和booktag表格创建成功了<br>
+<img width="308" height="459" alt="image" src="https://github.com/user-attachments/assets/77c4b0d8-57b1-417c-8a54-4ea98c7fd60c" /><br>
+# 8.创建tag相关的路由，先在src包里面新建一个tags包，然后在里面新建一个schemas.py,内容如下
+```
+import uuid
+from datetime import datetime
+from typing import List
+
+from pydantic import BaseModel
+
+
+class TagModel(BaseModel):
+    uid: uuid.UUID
+    name: str
+    created_at: datetime
+
+
+class TagCreateModel(BaseModel):
+    name: str
+
+
+class TagAddModel(BaseModel):
+    tags: List[TagCreateModel]
+```
+## 8.1>然后我们需要给db/models.py里面的Book类添加一个tags更新属性<br>
+<img width="1272" height="713" alt="image" src="https://github.com/user-attachments/assets/d0a25f38-3f2e-41d1-8866-268e57cfd207" /><br>
+### 有一点需要注意，我们的模型之间存在依赖，所以需要根据需要调整这些类的定义顺序，调整后models.py的内容如下<br>
+```
+from datetime import datetime, date
+from typing import List, Optional
+from sqlmodel import SQLModel, Field, Column, Relationship
+import sqlalchemy.dialects.postgresql as pg
+import uuid
+
+
+class BookTag(SQLModel, table=True):
+    book_id: uuid.UUID = Field(default=None, foreign_key="books.uid", primary_key=True)
+    tag_id: uuid.UUID = Field(default=None, foreign_key="tags.uid", primary_key=True)
+
+
+class Tag(SQLModel, table=True):
+    __tablename__ = "tags"
+    uid: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    )
+    name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    books: List["Book"] = Relationship(
+        link_model=BookTag,
+        back_populates="tags",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+    def __repr__(self) -> str:
+        return f"<Tag {self.name}>"
+
+
+# 转移自auth/models.py
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+    uid: uuid.UUID = Field(
+        sa_column=Column(
+            pg.UUID,
+            primary_key=True,
+            unique=True,
+            nullable=False,
+            default=uuid.uuid4,
+            info={"description": "Unique identifier for the user account"},
+        )
+    )
+    username: str
+    first_name: str = Field(nullable=True)
+    last_name: str = Field(nullable=True)
+    # let us add this line
+    role: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, server_default="user"))
+    is_verified: bool = False
+    email: str
+    password_hash: str = Field(exclude=True)  # 这个字段需要隐藏，不要让别人知道你的密码
+    # add books
+    books: List["Book"] = Relationship(back_populates="user", sa_relationship_kwargs={'lazy': 'selectin'})
+    # add reviews
+    reviews: List["Review"] = Relationship(back_populates="user", sa_relationship_kwargs={'lazy': 'selectin'})
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    update_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+
+    def __repr__(self) -> str:
+        return f"<User {self.username}>"
+
+
+# 转移自books/models.py
+class Book(SQLModel, table=True):
+    __tablename__ = "books"
+
+    uid: uuid.UUID = Field(
+        sa_column=Column(
+            pg.UUID,
+            nullable=False,
+            primary_key=True,
+            unique=True,
+            default=uuid.uuid4
+        )
+    )
+    title: str
+    author: str
+    publisher: str
+    published_date: date
+    page_count: int
+    language: str
+    # add foreign key
+    user_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.uid")
+    # add user field
+    user: Optional["User"] = Relationship(back_populates="books")
+    # add reviews
+    reviews: List["Review"] = Relationship(back_populates="book", sa_relationship_kwargs={'lazy': 'selectin'})
+    # add tags
+    tags: List["Tag"] = Relationship(
+        link_model=BookTag,
+        back_populates="books",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    update_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+
+    def __repr__(self):
+        return f"<Book: {self.title}>"
+
+
+#  review
+class Review(SQLModel, table=True):
+    __tablename__ = "reviews"
+
+    uid: uuid.UUID = Field(
+        sa_column=Column(
+            pg.UUID,
+            nullable=False,
+            primary_key=True,
+            unique=True,
+            default=uuid.uuid4
+        )
+    )
+    user_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.uid")
+    book_id: Optional[uuid.UUID] = Field(default=None, foreign_key="books.uid")
+    review_text: str
+    rating: int = Field(
+        lt=5
+    )
+    # add user
+    user: Optional["User"] = Relationship(back_populates="reviews")
+    # add book
+    book: Optional["Book"] = Relationship(back_populates="reviews")
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    update_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+
+    def __repr__(self):
+        return f"<Review for: book {self.book_id}> by user {self.user_id}"
+
+```
+## 8.2>然后我们需要在tags包里面创建一个services.py，在里面创建一个TagService类
 
 
 
