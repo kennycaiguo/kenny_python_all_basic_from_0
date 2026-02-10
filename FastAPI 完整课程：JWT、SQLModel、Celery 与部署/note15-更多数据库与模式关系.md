@@ -221,7 +221,7 @@ alembic upgrade head
 ## 4.4>我们需要创建Book类和Reviews类的属性关联，先给Reviews类添加一个book属性<br>
 <img width="1329" height="752" alt="image" src="https://github.com/user-attachments/assets/b84a41a5-a50f-4ccc-ad97-0bac1a365b66" /><br>
 ## 4.4>现在让我们来修改Books类，创建它与评论表的属性关联<br>
-<img width="1406" height="807" alt="image" src="https://github.com/user-attachments/assets/3379d85e-ee01-4fa8-aaa6-230636c43554" />
+<img width="1406" height="807" alt="image" src="https://github.com/user-attachments/assets/3379d85e-ee01-4fa8-aaa6-230636c43554" /><br>
 ## 4.5>然后我们需要在src里面创建一个reviws包，然后在里面新建一个service.py文件和一个routes.py文件，先写一些最基本的框架代码<br>
 <img width="796" height="419" alt="image" src="https://github.com/user-attachments/assets/f3cc5602-bdca-4db2-a656-46896fd5aa08" /><br>
 <img width="1020" height="425" alt="image" src="https://github.com/user-attachments/assets/2f6c146b-902a-475b-b3ae-a24cc055484b" /><br>
