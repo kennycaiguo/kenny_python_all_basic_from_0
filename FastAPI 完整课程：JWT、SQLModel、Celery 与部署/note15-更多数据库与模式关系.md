@@ -225,6 +225,7 @@ alembic upgrade head
 ## 4.5>然后我们需要在src里面创建一个reviws包，然后在里面新建一个service.py文件和一个routes.py文件，先写一些最基本的框架代码<br>
 <img width="796" height="419" alt="image" src="https://github.com/user-attachments/assets/f3cc5602-bdca-4db2-a656-46896fd5aa08" /><br>
 <img width="1020" height="425" alt="image" src="https://github.com/user-attachments/assets/2f6c146b-902a-475b-b3ae-a24cc055484b" /><br>
+
 ## 4.6>然后我们在src/__init__.py里面注册评论路由<br>
 <img width="1292" height="787" alt="image" src="https://github.com/user-attachments/assets/2105d7f0-f264-4d9a-be35-092384cd595b" /><br>
 ## 4.7>回到reviews/service.py,创建添加评论的路由的框架代码，注意：此次需要一个ReviewCreateModel类我们还没有创建<br>
