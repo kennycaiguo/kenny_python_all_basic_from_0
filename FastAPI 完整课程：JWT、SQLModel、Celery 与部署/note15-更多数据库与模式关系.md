@@ -554,7 +554,7 @@ class UserService:
 <img width="1436" height="859" alt="image" src="https://github.com/user-attachments/assets/0ecc0657-203a-4b94-873a-dc97f451b5cf" /><br>
 <img width="1335" height="749" alt="image" src="https://github.com/user-attachments/assets/b9b968db-bd02-4f1e-9610-487b08061e83" /><br>
 <img width="1517" height="761" alt="image" src="https://github.com/user-attachments/assets/7be77611-3b1a-4634-9fbe-34f290929035" /><br>
-# 7.然后我们来把书籍和标签关联起来，他们的关系如图<br>
+# 7.然后我们来把书籍和标签关联起来，他们的关系如图,所谓的tag其实就是类别category，我们可以通过tag来给书籍分类<br>
 <img width="878" height="542" alt="image" src="https://github.com/user-attachments/assets/fb094047-5337-4a24-9461-1af422790074" /><br>
 ## 这里我们创建另外2张表格tags和book_tags,book_tags起到一个桥梁的作用，可以实现books和tags的多对多关系<br>
 ## 7.1.我们需要在src/db/models.py里面创建2个类Tag和BookTag<br>
@@ -592,7 +592,7 @@ class TagCreateModel(BaseModel):
 class TagAddModel(BaseModel):
     tags: List[TagCreateModel]
 ```
-## 8.1>然后我们需要给db/models.py里面的Book类添加一个tags更新属性<br>
+## 8.1>然后我们需要给db/models.py里面的Book类添加一个tags关系属性<br>
 <img width="1272" height="713" alt="image" src="https://github.com/user-attachments/assets/d0a25f38-3f2e-41d1-8866-268e57cfd207" /><br>
 ### 有一点需要注意，我们的模型之间存在依赖，所以需要根据需要调整这些类的定义顺序，调整后models.py的内容如下<br>
 ```
@@ -725,8 +725,198 @@ class Review(SQLModel, table=True):
         return f"<Review for: book {self.book_id}> by user {self.user_id}"
 
 ```
-## 8.2>然后我们需要在tags包里面创建一个services.py，在里面创建一个TagService类
+# 8.2 用alembic创建一个修订，命令如下
+```
+alembic revision --autogenerate -m "add tags field to Book model"
+```
+<img width="1456" height="328" alt="image" src="https://github.com/user-attachments/assets/56b02e8c-b377-45ce-a4be-1c244820fd82" /><br>
 
+### 然后用下面的命令更新到数据库
+```
+alembic upgrade head
+```
+<img width="1239" height="144" alt="image" src="https://github.com/user-attachments/assets/992ce123-e700-4709-98be-2cee2e107b0f" /><br>
+
+## 8.3>然后，我们需要修改books/schemas.py,也给他添加一个tags属性
+<img width="1049" height="729" alt="image" src="https://github.com/user-attachments/assets/58bba414-d38d-4a8d-b2c9-de8a02c95e12" />
+
+
+## 8.4>然后我们需要在tags包里面创建一个services.py，在里面创建一个TagService类，代码如下
+```
+from fastapi import status
+from fastapi.exceptions import HTTPException
+from sqlmodel import desc, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.books.service import BookService
+from src.db.models import Tag
+
+from .schemas import TagAddModel, TagCreateModel
+
+book_service = BookService()
+
+
+server_error = HTTPException(
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something went wrong"
+)
+
+
+class TagService:
+    async def get_all_tags(self,session:AsyncSession):
+        stmt = select(Tag).order_by(desc(Tag.created_at))
+        result = await session.exec(stmt)
+        return result.all()
+
+    async def add_tags_to_book(self,book_id:str,tag_data:TagAddModel,session:AsyncSession):
+        book = await book_service.get_book(book_id,session)
+        if not book:
+            raise HTTPException(status_code=404, detail="Book not found")
+        # 防止重复创建
+        for tag_item in tag_data.tags:
+            result = await session.exec(
+                select(Tag).where(Tag.name == tag_item.name)
+            )
+
+            tag = result.one_or_none()
+            if not tag:
+                tag = Tag(name=tag_item.name)
+            book.tags.append(tag)
+        session.add(book)
+        await session.commit()
+        await session.refresh(book)
+        return book
+
+    async def get_tag_by_uid(self, tag_uid: str, session: AsyncSession):
+        stmt = select(Tag).where(Tag.uid==tag_uid)
+        result = await session.exec(stmt)
+
+        return result.first()
+
+    async def add_tag(self, tag_data: TagCreateModel, session: AsyncSession):
+        stmt = select(Tag).where(Tag.name==tag_data.name)
+        result = await session.exec(stmt)
+        tag = result.first()
+        if tag:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Tag exists"
+            )
+        new_tag = Tag(name=tag_data.name)
+        session.add(new_tag)
+        await session.commit()
+        return new_tag
+
+    async def update_tag(
+            self, tag_uid, tag_update_data: TagCreateModel, session: AsyncSession
+    ):
+        """Update a tag"""
+
+        tag = await self.get_tag_by_uid(tag_uid, session)
+
+        update_data_dict = tag_update_data.model_dump()
+
+        for k, v in update_data_dict.items():
+            setattr(tag, k, v)
+
+            await session.commit()
+
+            await session.refresh(tag)
+
+        return tag
+
+    async def delete_tag(self, tag_uid: str, session: AsyncSession):
+        """Delete a tag"""
+
+        tag = await self.get_tag_by_uid(tag_uid, session)
+
+        if not tag:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Tag does not exist"
+            )
+
+        await session.delete(tag)
+
+        await session.commit()
+```
+# 9.创建tag相关的路由，
+## 9.1我们在tags包下面新建一个routes.py,内容如下
+```
+from fastapi import APIRouter, status, Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi.exceptions import HTTPException
+from typing import List
+from .schemas import TagCreateModel, TagModel
+from .service import TagService
+from ..auth.dependencies import RoleChecker
+from ..books.schemas import Book
+from ..db.main import get_session
+
+tag_router = APIRouter()
+tag_service = TagService()
+user_ckecker = Depends(RoleChecker(allowed_roles=["user", "admin"]))
+admin_checker = Depends(RoleChecker(allowed_roles=["admin"]))
+
+
+@tag_router.get("/", response_model=List[TagModel], dependencies=[user_ckecker])
+async def get_all_tags(session: AsyncSession = Depends(get_session)):
+    tags = await tag_service.get_all_tags(session)
+    return tags
+
+
+@tag_router.get("/{tag_id}")
+async def get_a_tag(tag_id: str, session: AsyncSession = Depends(get_session)):
+    tag = await tag_service.get_tag_by_uid(tag_id, session)
+    if not tag:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tag not found..."
+        )
+    return tag
+
+
+@tag_router.post("/", response_model=TagModel, dependencies=[user_ckecker])
+async def create_a_tag(tag_data: TagCreateModel, session: AsyncSession = Depends(get_session)):
+    tag = await tag_service.add_tag(tag_data, session)
+
+    return tag
+
+
+@tag_router.post("/book/{book_id}/tags", response_model=Book, dependencies=[user_ckecker])
+async def add_tags_to_a_book(book_id: str, tag_data: TagCreateModel, session: AsyncSession = Depends(get_session)):
+    book_with_tag = await tag_service.add_tags_to_book(book_id, tag_data, session)
+
+    return book_with_tag
+
+
+@tag_router.put("/{tag_id}", dependencies=[user_ckecker])
+async def update_a_tag(tag_id: str, tag_update_data: TagCreateModel, session: AsyncSession = Depends(get_session)):
+    tag_updated = await tag_service.update_tag(tag_id, tag_update_data, session)
+
+    return tag_updated
+
+
+@tag_router.delete("/{tag_id}", dependencies=[user_ckecker])
+async def delete_a_tag(tag_id: str, session: AsyncSession = Depends(get_session)):
+    deleted_tag = await tag_service.delete_tag(tag_id, session)
+
+    return {
+        "deleted" : deleted_tag
+    }
+
+```
+## 9.2然后我们需要在src/__init__.py里面注册我们的tag相关路由<br>
+<img width="1208" height="611" alt="image" src="https://github.com/user-attachments/assets/9a206317-f0c1-4cb3-bc44-57eaa34a67ca" /><br>
+### 然后，我们就可以在postman里面测试路由了<br>
+### 添加标签成功<br>
+<img width="1429" height="732" alt="image" src="https://github.com/user-attachments/assets/71c6c5b0-1ab4-425d-b8fe-54fab7055c11" /><br>
+### 查询所有标签成功<br>
+<img width="1421" height="863" alt="image" src="https://github.com/user-attachments/assets/240a1cd4-a5c7-49e1-be98-22cd016d259c" /><br>
+### 工具id来查找tag成功<br>
+<img width="1490" height="795" alt="image" src="https://github.com/user-attachments/assets/fe1c0ffc-e284-4369-ba7b-80eda0093bfb" /><br>
+### 更新tag成功<br>
+<img width="1456" height="837" alt="image" src="https://github.com/user-attachments/assets/8d9f4fe6-4fd5-4445-a6b4-cfe6105b0615" /><br>
+### 删除tag也成功了<br>
+<img width="1434" height="796" alt="image" src="https://github.com/user-attachments/assets/fa01d576-0516-4273-a925-2bb85b61a96d" /><br>
+# 至此，第15节课学习完毕
 
 
 
